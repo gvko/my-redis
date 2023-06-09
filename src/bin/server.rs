@@ -1,18 +1,22 @@
 use tokio::net::TcpListener;
 use bytes::BytesMut;
 use tokio::io::AsyncReadExt;
+use my_redis::*;
 
 #[tokio::main]
 pub async fn main() -> Result<(), std::io::Error> {
     let address = "127.0.0.1:8081".to_string();
     let listener = TcpListener::bind(&address).await?;
-
     println!("\n---\nServer started on {address}. Waiting for connections...");
+
     loop {
         let (mut socket, _) = listener.accept().await?;
 
         let mut buf = BytesMut::with_capacity(1025);
         socket.read_buf(&mut buf).await?;
+
+        let command_words = buffer_to_array(&mut buf);
+        let command = Command::get_command(&command_words[0]);
 
         println!("buffer: {:#?}", buf);
     }
