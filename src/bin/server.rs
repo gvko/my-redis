@@ -1,6 +1,6 @@
-use tokio::net::TcpListener;
+use tokio::net::{TcpListener, TcpStream};
 use bytes::BytesMut;
-use tokio::io::AsyncReadExt;
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use my_redis::*;
 
 #[tokio::main]
@@ -9,6 +9,7 @@ pub async fn main() -> Result<(), std::io::Error> {
     let listener = TcpListener::bind(&address).await?;
     println!("\n---\nServer started on {address}. Waiting for connections...");
 
+    let db = Db::new();
     loop {
         let (mut socket, _) = listener.accept().await?;
 
@@ -23,4 +24,32 @@ pub async fn main() -> Result<(), std::io::Error> {
 
     #[allow(unreachable_code)]
     Ok(())
+}
+
+async fn process_command(command: Command, command_words: Vec<String>, socket: &mut TcpStream, db: &mut Db) -> Result<()> {
+    match command {
+        Command::Get => {
+            Ok(())
+        }
+        Command::Set => {
+            let response = db.write(&command_words);
+
+            match response {
+                Ok(result) => {
+                    println!("SET response: {:?}", result);
+                    socket.write_all(&result.as_bytes()).await?;
+                }
+                Err(err) => {
+                    eprintln!("SET error: {:?}", err);
+                    socket.write_all(&err.as_bytes()).await?;
+                }
+            }
+
+            Ok(())
+        }
+        Command::Invalid => {
+            eprintln!("Invalid command: {:?}", command_words);
+            Ok(())
+        }
+    }
 }
