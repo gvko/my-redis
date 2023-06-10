@@ -1,3 +1,4 @@
+use std::io::Error;
 use tokio::net::{TcpListener, TcpStream};
 use bytes::BytesMut;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
@@ -9,7 +10,7 @@ pub async fn main() -> Result<(), std::io::Error> {
     let listener = TcpListener::bind(&address).await?;
     println!("\n---\nServer started on {address}. Waiting for connections...");
 
-    let db = Db::new();
+    let mut db = Db::new();
     loop {
         let (mut socket, _) = listener.accept().await?;
 
@@ -20,13 +21,14 @@ pub async fn main() -> Result<(), std::io::Error> {
         let command = Command::get_command(&command_words[0]);
 
         println!("buffer: {:#?}", buf);
+        process_command(command, command_words, &mut socket, &mut db).await?;
     }
 
     #[allow(unreachable_code)]
     Ok(())
 }
 
-async fn process_command(command: Command, command_words: Vec<String>, socket: &mut TcpStream, db: &mut Db) -> Result<()> {
+async fn process_command(command: Command, command_words: Vec<String>, socket: &mut TcpStream, db: &mut Db) -> Result<(), Error> {
     match command {
         Command::Get => {
             Ok(())

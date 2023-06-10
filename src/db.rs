@@ -14,11 +14,10 @@ impl Db {
         let key = &command_words[0];
         let value = &command_words[1];
 
-        // FIXME: the key is not updated if alrdy exists
         let result = &self.entries.insert(key.to_string(), Bytes::from(value.clone()));
 
         match result {
-            Some(_) => Ok("r OK"),
+            Some(_) => Ok("r Ok"),
             None => Ok("Ok")
         }
     }
