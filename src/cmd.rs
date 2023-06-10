@@ -1,3 +1,4 @@
+#[derive(Debug)]
 pub enum Command {
     Get,
     Set,
@@ -18,9 +19,9 @@ impl Command {
     ///
     /// The corresponding `Command` enum variant based on the input string.
     pub fn get_command(str: &String) -> Command {
-        match str.as_bytes() {
-            b"get" => Command::Get,
-            b"set" => Command::Set,
+        match str.as_str() {
+            "get" => Command::Get,
+            "set" => Command::Set,
             _ => Command::Invalid,
         }
     }

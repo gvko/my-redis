@@ -24,5 +24,21 @@ async fn main() -> Result<(), std::io::Error> {
         Err(err) => eprintln!("Error: {}", err)
     }
 
+    let mut stream = TcpStream::connect("127.0.0.1:8081").await?;
+    stream.write_all(b"get foo").await?;
+    let mut buf = BytesMut::with_capacity(1024);
+    stream.read_buf(&mut buf).await?;
+
+    match from_utf8(&mut buf) {
+        Ok(res) => {
+            if res == "" {
+                println!("No key found");
+            } else {
+                println!("value: {}", res);
+            }
+        }
+        Err(err) => eprintln!("Error: {}", err)
+    }
+
     Ok(())
 }
